@@ -11,6 +11,3 @@ public class Main {
         runner.run();
     }
 }
-
-//TODO: fix bug with ship swim time
-//TODO: check configuration in ApplicationConfig class

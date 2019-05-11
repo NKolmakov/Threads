@@ -20,7 +20,7 @@ public class Dock {
         return dockId;
     }
 
-    public Ship getShip() {
+    public Ship getProviderShip() {
         return ship;
     }
 
@@ -46,5 +46,9 @@ public class Dock {
 
     public void setFree(boolean free) {
         isFree = free;
+    }
+
+    public Ship getShip() {
+        return ship;
     }
 }
