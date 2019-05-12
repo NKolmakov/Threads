@@ -4,20 +4,13 @@ import by.grodno.Main;
 import by.grodno.entities.*;
 import org.springframework.stereotype.Component;
 
-import java.util.Queue;
-import java.util.Random;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.List;
+import java.util.concurrent.*;
 
 @Component
 public class PortManager extends Thread {
     private Port port;
+    private Exchanger<List<Container>> containerExchanger = new Exchanger<>();
     private ExecutorService manager;
     private ExecutorService employee;
 
@@ -32,7 +25,7 @@ public class PortManager extends Thread {
         Dock dock = getAvailableDock();
         if (dock != null) {
             Main.LOGGER.info("Ship #" + ship.getShipId() + " going to dock #" + dock.getDockId());
-            manager.submit(() -> waitShip(ship, dock));
+            manager.submit(() -> workWithShip(ship, dock));
         } else {
             if (port.addShip2Queue(ship)) {
                 Main.LOGGER.info("Ship #" + ship.getShipId() + " added to queue");
@@ -69,20 +62,21 @@ public class PortManager extends Thread {
 
             }
         }
+
         return null;
     }
 
-    private void waitShip(Ship ship, Dock dock) {
+    private void workWithShip(Ship ship, Dock dock) {
         ship.go2Dock(dock);
         ship.leaveDock(dock);
         port.lock();
         port.removeReservation(dock);
         port.unlock();
+
         checkReady();
     }
 
     private void checkReady() {
-        //    Main.LOGGER.info("STATE: queue "+port.getShipQueue().size());
         if (port.getShipQueue().size() > 0) {
             startWork(port.getShipFromQueue());
         }

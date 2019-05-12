@@ -7,10 +7,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Callable;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Ship {
+    Lock lock = new ReentrantLock();
     private int shipId;
     private int capacity;
+    private boolean isBusy = false;
     private List<Container> containers2Unloading;
     private ContainerTypes requiredTypeOfContainers;
     private List<Container> containers2Loading;
@@ -43,14 +47,39 @@ public class Ship {
         return containers2Loading;
     }
 
-    public void loadContainer(Container container) {
-        this.containers2Loading.add(container);
+    /**
+     * Add a container to ship. Use this method to load ship
+     * @param container container to add
+     * @return true if ship not full otherwise return false
+     */
+    public boolean loadContainer(Container container) {
+        if(containers2Loading.size()+1 <= capacity) {
+            this.containers2Loading.add(container);
+            return true;
+        }else{
+            Main.LOGGER.error("Can't add container #"+container.getId()+" to ship #"+shipId+". Ship is full");
+            return false;
+        }
     }
 
-    public void unloadContainer(Container container) {
-        this.containers2Unloading.remove(container);
+    /**
+     *<p>This method designed for unload current ship. Last container removes from unload container's list.</p>
+     * @return the last container if it exists or null
+     */
+    public Container unloadContainer() {
+        Container container = null;
+        if(containers2Unloading.size()>0){
+            container = containers2Unloading.get(containers2Unloading.size()-1);
+            this.containers2Unloading.remove(containers2Unloading.size()-1);
+        }
+
+        return container;
     }
 
+    /**
+     *
+     * @return type of containers that ship want to load
+     */
     public ContainerTypes getRequiredTypeOfContainers() {
         return requiredTypeOfContainers;
     }
@@ -58,6 +87,7 @@ public class Ship {
     public void go2Dock(Dock dock){
         //ship goes to dock from 1 to 10 sec
         dock.tryLockTheDock();
+        dock.setShip(this);
         int time2ReachPort = new Random().nextInt(10)*1000 + 1000;
 
         try {
@@ -66,15 +96,22 @@ public class Ship {
             e.printStackTrace();
             Main.LOGGER.error(e.getStackTrace());
         }
-        System.out.println();
-        Main.LOGGER.info("Ship #"+shipId+" arrived to dock #"+dock.getDockId());
+        Main.LOGGER.info("Ship #"+shipId+" was swimming to dock #"+dock.getDockId()+" for "+time2ReachPort/1000f);
     }
 
     public Dock leaveDock(Dock dock){
+        dock.setShip(null);
         dock.setFree(true);
         Main.LOGGER.info("Ship #" + shipId + " left dock #" + dock.getDockId());
-        System.out.println();
         dock.unlockTheDock();
         return dock;
+    }
+
+    public void lockShip(){
+        lock.lock();
+    }
+
+    public void unlockShip(){
+        lock.unlock();
     }
 }

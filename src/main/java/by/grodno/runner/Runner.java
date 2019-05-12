@@ -1,10 +1,8 @@
 package by.grodno.runner;
 
 import by.grodno.configs.ApplicationConfig;
-import by.grodno.entities.Container;
-import by.grodno.entities.ContainerTypes;
-import by.grodno.entities.Port;
-import by.grodno.entities.Ship;
+import by.grodno.entities.*;
+import by.grodno.managers.Employee;
 import by.grodno.managers.PortManager;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -33,6 +31,9 @@ public class Runner {
             portManager.startWork(ship);
         }
 
+        /**if port have ship queue it's forbidden to shutdown Executor Service
+         * This service will recursive call himself until ship queue won't be empty
+         */
         while(port.getShipQueue().size() >0){
             try {
                 Thread.sleep(1);
@@ -42,5 +43,38 @@ public class Runner {
         }
 
         portManager.getManager().shutdown();
+
+        // here for test and can be deleted
+
+        Ship ship = new Ship(1,ContainerTypes.platform,150);
+        List<Container> containerList = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            containerList.add(new Container(i+1,ContainerTypes.refrigerator));
+        }
+        ship.setContainers2Unloading(containerList);
+
+        Ship ship1 = new Ship(2,ContainerTypes.refrigerator,70);
+        List<Container> containerList1 = new ArrayList<>();
+        for (int i = 0; i < ship1.getCapacity(); i++) {
+            containerList1.add(new Container(i+1,ContainerTypes.platform));
+        }
+        ship1.setContainers2Unloading(containerList1);
+
+        Storage storage = new Storage(200);
+        List<Container> containerList2 = new ArrayList<>();
+        for (int i = 0; i < 50; i++) {
+            containerList2.add(new Container(i+1,ContainerTypes.platform));
+        }
+        storage.addContainers(containerList2);
+        storage.addContainers(containerList);
+        storage.addContainers(containerList1);
+
+        Employee employee = new Employee(ship,ship1,storage);
+        employee.start();
+        try {
+            employee.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

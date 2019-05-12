@@ -10,4 +10,7 @@ public class Main {
         Runner runner = new Runner();
         runner.run();
     }
+
+    //TODO: think about exchanger usage
+    //TODO: instructions for manager so select objects for exchange
 }
