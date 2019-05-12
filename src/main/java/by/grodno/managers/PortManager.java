@@ -47,7 +47,7 @@ public class PortManager extends Thread {
             //check every dock
             for (Dock dock : port.getAvailableDocks()) {
 
-                /**if current dock don't locked by other ships lock it
+                /*if current dock don't locked by other ships lock it
                  * this check required cause of other ships can try to change dock status at the same time
                  */
                 if (dock.tryLockTheDock())
@@ -80,5 +80,9 @@ public class PortManager extends Thread {
         if (port.getShipQueue().size() > 0) {
             startWork(port.getShipFromQueue());
         }
+    }
+
+    private void lookObject4Exchange(Ship ship){
+
     }
 }

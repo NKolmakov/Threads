@@ -11,9 +11,10 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Ship {
-    Lock lock = new ReentrantLock();
+    private Lock lock = new ReentrantLock();
     private int shipId;
     private int capacity;
+    private Dock dock;
     private boolean isBusy = false;
     private List<Container> containers2Unloading;
     private ContainerTypes requiredTypeOfContainers;
@@ -87,7 +88,7 @@ public class Ship {
     public void go2Dock(Dock dock){
         //ship goes to dock from 1 to 10 sec
         dock.tryLockTheDock();
-        dock.setShip(this);
+        this.dock = dock;
         int time2ReachPort = new Random().nextInt(10)*1000 + 1000;
 
         try {
@@ -96,14 +97,14 @@ public class Ship {
             e.printStackTrace();
             Main.LOGGER.error(e.getStackTrace());
         }
-        Main.LOGGER.info("Ship #"+shipId+" was swimming to dock #"+dock.getDockId()+" for "+time2ReachPort/1000f);
+        Main.LOGGER.info("Ship #"+shipId+" was swimming to dock #"+dock.getDockId()+" for "+time2ReachPort/1000+" sec.");
     }
 
     public Dock leaveDock(Dock dock){
-        dock.setShip(null);
         dock.setFree(true);
         Main.LOGGER.info("Ship #" + shipId + " left dock #" + dock.getDockId());
         dock.unlockTheDock();
+        this.dock = null;
         return dock;
     }
 
@@ -113,5 +114,13 @@ public class Ship {
 
     public void unlockShip(){
         lock.unlock();
+    }
+
+    public Dock getDock() {
+        return dock;
+    }
+
+    public void setDock(Dock dock) {
+        this.dock = dock;
     }
 }

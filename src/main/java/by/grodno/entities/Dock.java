@@ -10,7 +10,6 @@ public class Dock {
     private Lock lock = new ReentrantLock();
     private int dockId;
     private boolean isFree;
-    private Ship ship;
 
     public Dock() {
         isFree = true;
@@ -20,16 +19,8 @@ public class Dock {
         return dockId;
     }
 
-    public Ship getProviderShip() {
-        return ship;
-    }
-
     public void setDockId(int dockId) {
         this.dockId = dockId;
-    }
-
-    public void setShip(Ship ship) {
-        this.ship = ship;
     }
 
     public boolean tryLockTheDock() {
@@ -46,9 +37,5 @@ public class Dock {
 
     public void setFree(boolean free) {
         isFree = free;
-    }
-
-    public Ship getShip() {
-        return ship;
     }
 }
