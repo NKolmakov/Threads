@@ -31,7 +31,7 @@ public class Port {
         this.dockAmount = docks.size();
         this.waitingDockQueue = new ArrayBlockingQueue<Ship>(shipQueueCapacity);
         this.waitingUnloadQueue = new ArrayBlockingQueue<Ship>(shipQueueCapacity);
-        this.time2Wait = Executors.newSingleThreadScheduledExecutor();
+        this.time2Wait = Executors.newScheduledThreadPool(shipQueueCapacity);
         this.storage = storage;
     }
 
@@ -107,9 +107,8 @@ public class Port {
      * @param ship ship that waiting exchanging
      */
     public void add2WaitingUnloadQueue(Ship ship) {
-
-        time2Wait.schedule(() -> startExchangeWithStorage(ship), 10 + new Random().nextInt(5), TimeUnit.SECONDS);
         this.waitingUnloadQueue.add(ship);
+        time2Wait.schedule(() -> startExchangeWithStorage(ship), new Random().nextInt(2), TimeUnit.SECONDS);
         Main.LOGGER.info("Ship #" + ship.getShipId() + " started wait exchanging");
     }
 
@@ -120,7 +119,10 @@ public class Port {
     private void startExchangeWithStorage(Ship ship) {
 
         //if ship still wait exchanging
+        lock();
         if (waitingUnloadQueue.contains(ship)) {
+            waitingUnloadQueue.remove(ship);
+            unlock();
             Main.LOGGER.info("Ship #" + ship.getShipId() + " waited enough and start exchanging with storage");
 
             //start exchange with storage
@@ -135,9 +137,12 @@ public class Port {
             }
 
             //after exchanging leave port
+            lock();
             Dock dock = ship.leaveDock();
             removeReservation(dock);
-            waitingUnloadQueue.remove(ship);
+            unlock();
+        }else{
+            unlock();
         }
     }
 

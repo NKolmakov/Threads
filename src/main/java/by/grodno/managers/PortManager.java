@@ -10,33 +10,28 @@ import java.util.concurrent.*;
 @Component
 public class PortManager extends Thread {
     private Port port;
-    private Exchanger<List<Container>> containerExchanger = new Exchanger<>();
     private ExecutorService manager;
-    private ExecutorService employee;
-    private ExecutorService time2Unload = Executors.newSingleThreadScheduledExecutor();
 
 
     public PortManager(Port port) {
         this.port = port;
         manager = Executors.newFixedThreadPool(port.getDockAmount());
-        employee = Executors.newFixedThreadPool(port.getDockAmount());
     }
 
     public void startWork(Ship ship) {
         Dock dock = getAvailableDock();
+        port.lock();
         if (dock != null) {
             Main.LOGGER.info("Ship #" + ship.getShipId() + " going to dock #" + dock.getDockId());
             manager.submit(() -> workWithShip(ship, dock));
-        } else if (port.addShip2WaitingDockQueue(ship)) {
-            Main.LOGGER.info("Ship #" + ship.getShipId() + " added to waiting dock queue");
         } else {
-            Main.LOGGER.info("Ship #" + ship.getShipId() + " don't come");
+            if (port.addShip2WaitingDockQueue(ship)) {
+                Main.LOGGER.info("Ship #" + ship.getShipId() + " added to waiting dock queue");
+            } else {
+                Main.LOGGER.info("Ship #" + ship.getShipId() + " don't come");
+            }
         }
-    }
-
-
-    public ExecutorService getManager() {
-        return manager;
+        port.unlock();
     }
 
     private Dock getAvailableDock() {
@@ -57,7 +52,6 @@ public class PortManager extends Thread {
                     port.unlock();
                     return dock;
                 }
-
         }
         port.unlock();
         return null;
@@ -68,20 +62,11 @@ public class PortManager extends Thread {
         lookObject4Exchange(ship);
     }
 
-    private void checkReady() {
-        port.lock();
-        Ship ship = port.getShipFromQueue();
-        port.unlock();
-        if (ship != null) {
-            startWork(ship);
-        }
-    }
-
     private void lookObject4Exchange(Ship ship) {
-        int available;
         port.lock();
         Ship waitingShip = port.getWaiting2UnloadShip(ship.getRequiredTypeOfContainers());
         port.unlock();
+
         if (waitingShip != null) {
 
             //if such ship was found give a command to start exchange
@@ -93,51 +78,40 @@ public class PortManager extends Thread {
                 e.printStackTrace();
             }
 
-            Dock dock = ship.leaveDock();
-            Dock dock1 = waitingShip.leaveDock();
-
             port.lock();
 
+            Dock dock = ship.leaveDock();
+            Dock dock1 = waitingShip.leaveDock();
             port.removeReservation(dock);
             port.removeReservation(dock1);
-            available = port.getAvailableDocks().size();
 
             port.unlock();
 
-            while (available == 0) {
-                try {
-                    port.lock();
-
-                    available = port.getAvailableDocks().size();
-
-                    port.unlock();
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
             checkReady();
 
         } else {
             port.lock();
-
             port.add2WaitingUnloadQueue(ship);
-            available = port.getAvailableDocks().size();
-
             port.unlock();
-            while (available == 0) {
-                try {
-                    port.lock();
-
-                    available = port.getAvailableDocks().size();
-
-                    port.unlock();
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
             checkReady();
         }
+    }
+
+    private void checkReady() {
+        Dock dock = getAvailableDock();
+        if (dock != null) {
+            Ship ship = port.getShipFromQueue();
+            if (ship != null) {
+                manager.submit(() -> workWithShip(ship, dock));
+            } else {
+                port.lock();
+                port.removeReservation(dock);
+                port.unlock();
+            }
+        }
+    }
+
+    public ExecutorService getManager() {
+        return manager;
     }
 }

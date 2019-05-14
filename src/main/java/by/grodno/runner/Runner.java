@@ -1,5 +1,6 @@
 package by.grodno.runner;
 
+import by.grodno.Main;
 import by.grodno.configs.ApplicationConfig;
 import by.grodno.entities.*;
 import by.grodno.managers.Employee;
@@ -34,9 +35,10 @@ public class Runner {
         /**if port have ship queue it's forbidden to shutdown Executor Service
          * This service will recursive call himself until ship queue won't be empty
          */
-        while (port.getWaitingUnloadQueue().size() >0 || port.getWaitingDockQueue().size() >0 || port.getAvailableDocks().size() != 10){
+        while (port.getWaitingUnloadQueue().size() >0 || port.getWaitingDockQueue().size() >0 || port.getAvailableDocks().size() !=10){
             try {
-                Thread.sleep(1);
+                Thread.sleep(100);
+              //  Main.LOGGER.info("waitingUnloadQueue: "+port.getWaitingUnloadQueue().size()+" waitingDock: "+port.getWaitingDockQueue().size()+" available: "+port.getAvailableDocks().size());
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

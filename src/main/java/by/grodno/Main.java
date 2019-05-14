@@ -11,5 +11,5 @@ public class Main {
         runner.run();
     }
 
-    //TODO: check time to go out and working with queue
+    //todo: consider the situation when ship start wait
 }
