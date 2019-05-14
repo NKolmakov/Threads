@@ -11,6 +11,5 @@ public class Main {
         runner.run();
     }
 
-    //TODO: think about exchanger usage
-    //TODO: instructions for manager so select objects for exchange
+    //TODO: check time to go out and working with queue
 }

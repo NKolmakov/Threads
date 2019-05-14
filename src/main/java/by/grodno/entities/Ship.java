@@ -98,9 +98,12 @@ public class Ship {
             Main.LOGGER.error(e.getStackTrace());
         }
         Main.LOGGER.info("Ship #"+shipId+" was swimming to dock #"+dock.getDockId()+" for "+time2ReachPort/1000+" sec.");
+        dock.unlockTheDock();
     }
 
-    public Dock leaveDock(Dock dock){
+    public Dock leaveDock(){
+        dock.tryLockTheDock();
+        Dock dock = this.dock;
         dock.setFree(true);
         Main.LOGGER.info("Ship #" + shipId + " left dock #" + dock.getDockId());
         dock.unlockTheDock();

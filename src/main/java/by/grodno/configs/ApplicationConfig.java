@@ -18,8 +18,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class ApplicationConfig {
 
     @Bean(name = "docks")
-    public List<Dock> getDocks() {
-        List<Dock> dockList = new ArrayList<>(10);
+    public Queue<Dock> getDocks() {
+        Queue<Dock> dockList = new ArrayBlockingQueue<>(10);
         for (int i = 0; i < 10; i++) {
             Dock dock = new Dock();
             dock.setDockId(i+1);
@@ -29,7 +29,7 @@ public class ApplicationConfig {
     }
 
     @Bean(name = "port")
-    public Port getport() {
+    public Port getPort() {
         return new Port(getDocks(),10, getStorage());
     }
 
@@ -38,8 +38,8 @@ public class ApplicationConfig {
         return new Storage(200);
     }
 
-    @Bean(name = "portmanager")
+    @Bean(name = "portManager")
     public PortManager getPortManager(){
-        return new PortManager(getport());
+        return new PortManager(getPort());
     }
 }

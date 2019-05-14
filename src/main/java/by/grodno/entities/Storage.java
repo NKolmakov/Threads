@@ -21,7 +21,19 @@ public class Storage {
         return capacity;
     }
 
+    /**
+     * <p>Use this method to add a container to storage</p>
+     *
+     * @param container container to add to storage
+     *
+     * @return <i>true</i> if storage has free space else return <i>false</i>
+     */
     public boolean loadContainer(Container container) {
+        if (containers.size() + 1 <= capacity) {
+            containers.add(container);
+            return true;
+        }
+
         return false;
     }
 
@@ -49,6 +61,13 @@ public class Storage {
         return null;
     }
 
+    public boolean hasFreeSpace() {
+        if (containers.size() < capacity) {
+            return true;
+        }
+        return false;
+    }
+
     public void lockTheStorage() {
         lock.lock();
     }
@@ -68,7 +87,16 @@ public class Storage {
         return containerList;
     }
 
-    public void addContainers(List<Container> containers) {
-        this.containers.addAll(containers);
+    public boolean addContainers(List<Container> containers) {
+        if(containers.size()+this.containers.size() <= capacity) {
+            this.containers.addAll(containers);
+            return true;
+        }
+
+        return false;
+    }
+
+    public List<Container> getContainers() {
+        return containers;
     }
 }
