@@ -15,7 +15,6 @@ public class Ship {
     private int shipId;
     private int capacity;
     private Dock dock;
-    private boolean isBusy = false;
     private List<Container> containers2Unloading;
     private ContainerTypes requiredTypeOfContainers;
     private List<Container> containers2Loading;
@@ -119,11 +118,4 @@ public class Ship {
         lock.unlock();
     }
 
-    public Dock getDock() {
-        return dock;
-    }
-
-    public void setDock(Dock dock) {
-        this.dock = dock;
-    }
 }

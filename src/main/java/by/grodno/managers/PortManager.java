@@ -27,7 +27,7 @@ public class PortManager extends Thread {
         if (dock != null) {
             Main.LOGGER.info("Ship #" + ship.getShipId() + " going to dock #" + dock.getDockId());
             manager.submit(() -> workWithShip(ship, dock));
-        } else if (port.addShip2Queue(ship)) {
+        } else if (port.addShip2WaitingDockQueue(ship)) {
             Main.LOGGER.info("Ship #" + ship.getShipId() + " added to waiting dock queue");
         } else {
             Main.LOGGER.info("Ship #" + ship.getShipId() + " don't come");
@@ -66,38 +66,22 @@ public class PortManager extends Thread {
     private void workWithShip(Ship ship, Dock dock) {
         ship.go2Dock(dock);
         lookObject4Exchange(ship);
-//        port.lock();
-//        port.removeReservation(dock);
-//        port.unlock();
-//
-//        checkReady();
     }
 
     private void checkReady() {
         port.lock();
         Ship ship = port.getShipFromQueue();
-       // Dock dock = getAvailableDock();
         port.unlock();
         if (ship != null) {
             startWork(ship);
-//            if (dock != null) {
-//            //    manager.submit(() -> workWithShip(ship, dock)); // here changed
-//            } else {
-//                port.lock();
-//                port.addShip2Queue(ship);
-//                port.unlock();
-//            }
         }
     }
 
     private void lookObject4Exchange(Ship ship) {
         int available;
-        // port.lock();
-        //if port has queue of ships staying at port try to find ship with required container's type
         port.lock();
         Ship waitingShip = port.getWaiting2UnloadShip(ship.getRequiredTypeOfContainers());
         port.unlock();
-        // port.unlock();
         if (waitingShip != null) {
 
             //if such ship was found give a command to start exchange
@@ -108,25 +92,24 @@ public class PortManager extends Thread {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            //new
-//            ship.lockShip();
-//            waitingShip.lockShip();
 
             Dock dock = ship.leaveDock();
             Dock dock1 = waitingShip.leaveDock();
 
-//            ship.unlockShip();
-//            waitingShip.unlockShip();
             port.lock();
+
             port.removeReservation(dock);
             port.removeReservation(dock1);
             available = port.getAvailableDocks().size();
+
             port.unlock();
 
             while (available == 0) {
                 try {
                     port.lock();
+
                     available = port.getAvailableDocks().size();
+
                     port.unlock();
                     Thread.sleep(1);
                 } catch (InterruptedException e) {
@@ -134,18 +117,20 @@ public class PortManager extends Thread {
                 }
             }
             checkReady();
-            //end new
 
         } else {
             port.lock();
+
             port.add2WaitingUnloadQueue(ship);
             available = port.getAvailableDocks().size();
-            Main.LOGGER.info("Ship #"+ship.getShipId()+" can't find ship 4 exchange and should be added to waiting queue: "+port.getWaitingUnloadQueue().size()+"; available: "+available);
+
             port.unlock();
             while (available == 0) {
                 try {
                     port.lock();
+
                     available = port.getAvailableDocks().size();
+
                     port.unlock();
                     Thread.sleep(1);
                 } catch (InterruptedException e) {

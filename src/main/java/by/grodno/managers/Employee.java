@@ -41,8 +41,9 @@ public class Employee extends Thread {
         ship4Exchange.lockShip();
 
         Main.LOGGER.info("Ship #" + ship.getShipId() + " is ready to exchange with ship #" + ship4Exchange.getShipId());
-        Main.LOGGER.info("start exchanging info: Ship #" + ship.getShipId() + " load: " + ship.getContainers2Loading().size() + " unload:" + ship.getContainers2Unloading().size()+" capacity: "+ship.getCapacity());
-        Main.LOGGER.info("start exchanging info: Ship #" + ship4Exchange.getShipId() + " load: " + ship4Exchange.getContainers2Loading().size() + " unload:" + ship4Exchange.getContainers2Unloading().size()+" capacity: "+ship4Exchange.getCapacity());
+        Main.LOGGER.debug("before: Ship #" + ship.getShipId() + " load:" + ship.getContainers2Loading().size() + "; unload:" + ship.getContainers2Unloading().size());
+        Main.LOGGER.debug("before: Ship #" + ship4Exchange.getShipId() + " load:" + ship4Exchange.getContainers2Loading().size() + "; unload:" + ship4Exchange.getContainers2Unloading().size());
+        Main.LOGGER.debug("before: Storage: containers:"+storage.getContainers().size()+"; capacity: "+storage.getCapacity());
 
         //while container list to load not full unload other ship
         for (int i = 0; i < ship.getCapacity(); i++) {
@@ -60,9 +61,11 @@ public class Employee extends Thread {
                 break;
             }
         }
+        Main.LOGGER.info("Ship #" + ship.getShipId() + " exchanged with ship #" + ship4Exchange.getShipId());
 
         //if ship4Exchange requesting first ship's unload type of containers
-        if ((ship4Exchange.getRequiredTypeOfContainers().toString()).equalsIgnoreCase(ship.getContainers2Unloading().get(0).getType().toString())) {
+        // if ((ship4Exchange.getRequiredTypeOfContainers().toString()).equalsIgnoreCase(ship.getContainers2Unloading().get(0).getType().toString())) {
+        if (getRequiredContainers(ship, ship4Exchange.getRequiredTypeOfContainers()).size() > 0) {
             Main.LOGGER.info("Ship #" + ship4Exchange.getShipId() + " is ready to exchange with ship #" + ship.getShipId());
             for (int i = 0; i < ship4Exchange.getCapacity(); i++) {
                 Container container = ship.unloadContainer();
@@ -81,23 +84,20 @@ public class Employee extends Thread {
         }
 
         Main.LOGGER.info("Exchange between ship #" + ship.getShipId() + " and ship #" + ship4Exchange.getShipId() + " is over.");
-
+        Main.LOGGER.info("Ship #" + ship.getShipId() + " and " + ship4Exchange.getShipId() + " check required containers at storage");
         ship.unlockShip();
         ship4Exchange.unlockShip();
-
 
         workWithStorage(ship);
         workWithStorage(ship4Exchange);
 
-        Main.LOGGER.info("Ship #" + ship.getShipId() + " and ship #" + ship4Exchange.getShipId() + " may be free");
-        Main.LOGGER.info("end exchanging info:Ship #" + ship.getShipId() + " load: " + ship.getContainers2Loading().size() + " unload: " + ship.getContainers2Unloading().size()+" storage: "+storage.getContainers().size()+" capacity: "+storage.getCapacity());
-        Main.LOGGER.info("end exchanging info:Ship #" + ship4Exchange.getShipId() + " load: " + ship4Exchange.getContainers2Loading().size() + " unload: " + ship4Exchange.getContainers2Unloading().size());
-
+        Main.LOGGER.debug("after:Ship #" + ship.getShipId() + " load: " + ship.getContainers2Loading().size() + " unload: " + ship.getContainers2Unloading().size());
+        Main.LOGGER.debug("after:Ship #" + ship4Exchange.getShipId() + " load: " + ship4Exchange.getContainers2Loading().size() + " unload: " + ship4Exchange.getContainers2Unloading().size());
+        Main.LOGGER.debug("after:Storage: containers:"+storage.getContainers().size()+"; capacity: "+storage.getCapacity());
     }
 
     private void loadFromStorage(Ship ship) {
         storage.lockTheStorage();
-        ship.lockShip();
         AtomicInteger counter = new AtomicInteger(0);
 
         //if storage has required containers start unloading
@@ -106,6 +106,7 @@ public class Employee extends Thread {
             //if ship has free space then load container
             if (ship.getContainers2Loading().size() + 1 <= ship.getCapacity()) {
                 ship.loadContainer(container);
+                storage.unloadContainer(container);
                 counter.incrementAndGet();
             } else {
                 break;
@@ -113,36 +114,36 @@ public class Employee extends Thread {
         }
 
         Main.LOGGER.info("Ship #" + ship.getShipId() + " took " + counter + " containers of type: " + ship.getRequiredTypeOfContainers() + " from storage");
-
-        ship.unlockShip();
+        Main.LOGGER.debug("Storage: containers:"+storage.getContainers().size()+"; capacity: "+storage.getCapacity());
+        Main.LOGGER.debug("Ship #" + ship.getShipId() + " load:" + ship.getContainers2Loading().size() + "; unload:" + ship.getContainers2Unloading().size());
         storage.unlockTheStorage();
     }
 
     private void unload2Storage(Ship ship) {
-        storage.lockTheStorage();
+      //  storage.lockTheStorage();
 
         AtomicInteger counter = new AtomicInteger(0);
         for (int i = 0; i < ship.getCapacity(); i++) {
 
-            if(storage.hasFreeSpace()) {
+            if (storage.hasFreeSpace()) {
                 Container container = ship.unloadContainer();
 
                 if (container != null) {
                     storage.loadContainer(container);
                     counter.incrementAndGet();
-                }else{
+                } else {
                     break;
                 }
-            }else{
+            } else {
                 break;
             }
         }
 
-        if(counter.get() >0) {
-            Main.LOGGER.info("Ship #" + ship.getShipId() + " unload " + counter + " containers to storage");
-        }
+        Main.LOGGER.info("Ship #" + ship.getShipId() + " unload " + counter + " containers to storage");
+        Main.LOGGER.debug("Storage: containers:"+storage.getContainers().size()+"; capacity: "+storage.getCapacity());
+        Main.LOGGER.debug("Ship #" + ship.getShipId() + " load:" + ship.getContainers2Loading().size() + "; unload:" + ship.getContainers2Unloading().size());
 
-        storage.unlockTheStorage();
+      //  storage.unlockTheStorage();
     }
 
     private void workWithStorage(Ship ship) {
@@ -150,6 +151,18 @@ public class Employee extends Thread {
         loadFromStorage(ship);
         unload2Storage(ship);
         ship.unlockShip();
+    }
+
+    private List<Container> getRequiredContainers(Ship ship, ContainerTypes requiredType) {
+        List<Container> containers = new ArrayList<>();
+
+        for (Container container : ship.getContainers2Unloading()) {
+            if (container.getType().toString().equalsIgnoreCase(requiredType.toString())) {
+                containers.add(container);
+            }
+        }
+
+        return containers;
     }
 
 }
