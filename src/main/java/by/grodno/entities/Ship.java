@@ -39,8 +39,24 @@ public class Ship {
         return containers2Unloading;
     }
 
-    public void setContainers2Unloading(List<Container> containers2Unloading) {
-        this.containers2Unloading = containers2Unloading;
+    public boolean addContainers2Unloading(List<Container> containers2Unloading) {
+        if(containers2Unloading.size()+this.containers2Unloading.size() <= capacity) {
+            this.containers2Unloading.addAll(containers2Unloading);
+            return true;
+        }else{
+            Main.LOGGER.error("Can't add "+containers2Unloading.size()+" containers to ship #"+shipId+". Ship will be overloaded");
+            return false;
+        }
+    }
+
+    public boolean addContainer2Unloading(Container container){
+        if(containers2Unloading.size()+1 <= capacity) {
+            this.containers2Unloading.add(container);
+            return true;
+        }else{
+            Main.LOGGER.error("Can't add container to ship #"+shipId+". Ship is full");
+            return false;
+        }
     }
 
     public List<Container> getContainers2Loading() {

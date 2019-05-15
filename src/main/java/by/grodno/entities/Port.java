@@ -108,7 +108,7 @@ public class Port {
      */
     public void add2WaitingUnloadQueue(Ship ship) {
         this.waitingUnloadQueue.add(ship);
-        time2Wait.schedule(() -> startExchangeWithStorage(ship), new Random().nextInt(2), TimeUnit.SECONDS);
+        time2Wait.schedule(() -> startExchangeWithStorage(ship), new Random().nextInt(5)+5, TimeUnit.SECONDS);
         Main.LOGGER.info("Ship #" + ship.getShipId() + " started wait exchanging");
     }
 

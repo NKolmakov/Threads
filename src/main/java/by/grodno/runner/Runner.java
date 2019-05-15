@@ -20,17 +20,22 @@ public class Runner {
         ApplicationContext context = new AnnotationConfigApplicationContext(ApplicationConfig.class);
         Port port = context.getBean("port", Port.class);
         PortManager portManager = context.getBean("portManager", PortManager.class);
+        List<Ship> ships = context.getBean("filledShips",List.class);
 
-        for (int i = 0; i < 20; i++) {
-            Ship ship = new Ship(i + 1, ContainerTypes.platform, 30);
-            List<Container> containers = new ArrayList<>();
-            for (int j = 0; j < ship.getCapacity(); j++) {
-                Container container = new Container(i + 1, ContainerTypes.refrigerator);
-                containers.add(container);
-            }
-            ship.setContainers2Unloading(containers);
+        for (Ship ship:ships){
             portManager.startWork(ship);
         }
+
+//        for (int i = 0; i < 20; i++) {
+//            Ship ship = new Ship(i + 1, ContainerTypes.platform, 30);
+//            List<Container> containers = new ArrayList<>();
+//            for (int j = 0; j < ship.getCapacity(); j++) {
+//                Container container = new Container(i + 1, ContainerTypes.refrigerator);
+//                containers.add(container);
+//            }
+//            ship.setContainers2Unloading(containers);
+//            portManager.startWork(ship);
+//        }
 
         /**if port have ship queue it's forbidden to shutdown Executor Service
          * This service will recursive call himself until ship queue won't be empty
@@ -38,7 +43,6 @@ public class Runner {
         while (port.getWaitingUnloadQueue().size() >0 || port.getWaitingDockQueue().size() >0 || port.getAvailableDocks().size() !=10){
             try {
                 Thread.sleep(100);
-              //  Main.LOGGER.info("waitingUnloadQueue: "+port.getWaitingUnloadQueue().size()+" waitingDock: "+port.getWaitingDockQueue().size()+" available: "+port.getAvailableDocks().size());
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

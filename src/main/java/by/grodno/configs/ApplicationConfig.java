@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 
 @Configuration
@@ -44,9 +45,59 @@ public class ApplicationConfig {
         return storage;
     }
 
+
+    @Bean(name = "filledShips")
+    public List<Ship> getShipList(){
+        int nextShipId = 1;
+        int nextContainerId = 1;
+        List<Ship> ships = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            Ship ship1 = new Ship(nextShipId++,ContainerTypes.platform,new Random().nextInt(20)+10);
+            ship1.addContainers2Unloading(getFilledContainers(ship1.getCapacity(),ContainerTypes.tank,nextContainerId));
+            nextContainerId += ship1.getContainers2Unloading().size();
+
+            Ship ship2 = new Ship(nextShipId++,ContainerTypes.isothermal,new Random().nextInt(20)+10);
+            ship2.addContainers2Unloading(getFilledContainers(ship2.getCapacity(),ContainerTypes.standard,nextContainerId));
+            nextContainerId += ship2.getContainers2Unloading().size();
+
+            Ship ship3 = new Ship(nextShipId++,ContainerTypes.refrigerator,new Random().nextInt(20)+10);
+            ship3.addContainers2Unloading(getFilledContainers(ship3.getCapacity(),ContainerTypes.isothermal,nextContainerId));
+            nextContainerId += ship3.getContainers2Unloading().size();
+
+            Ship ship4 = new Ship(nextShipId++,ContainerTypes.standard,new Random().nextInt(20)+10);
+            ship4.addContainers2Unloading(getFilledContainers(ship4.getCapacity(),ContainerTypes.refrigerator,nextContainerId));
+            nextContainerId += ship4.getContainers2Unloading().size();
+
+            Ship ship5 = new Ship(nextShipId++,ContainerTypes.tank,new Random().nextInt(20)+10);
+            ship5.addContainers2Unloading(getFilledContainers(ship5.getCapacity(),ContainerTypes.platform,nextContainerId));
+
+            ships.add(ship1);
+            ships.add(ship2);
+            ships.add(ship3);
+            ships.add(ship4);
+            ships.add(ship5);
+        }
+
+        return ships;
+    }
+
+    private List<Container> getFilledContainers(int amount,ContainerTypes type,int startId){
+        List<Container> containers = new ArrayList<>();
+        if(amount > 0) {
+            for (int i = 0; i < amount; i++) {
+                containers.add(new Container(startId++,type));
+            }
+        }
+        return containers;
+    }
+
+    private Container getContainer(int id,ContainerTypes containerType){
+        return new Container(id,containerType);
+    }
+
     @Bean(name = "port")
     public Port getPort() {
-        return new Port(getDocks(),10, getEmptyStorage());
+        return new Port(getDocks(),10, getFilledStorage());
     }
 
     @Bean(name = "storage")

@@ -4,7 +4,6 @@ import by.grodno.Main;
 import by.grodno.entities.*;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.concurrent.*;
 
 @Component
