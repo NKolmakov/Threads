@@ -10,6 +10,4 @@ public class Main {
         Runner runner = new Runner();
         runner.run();
     }
-
-    //todo: consider the situation when ship start wait
 }
