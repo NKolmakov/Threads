@@ -3,10 +3,8 @@ package by.grodno.entities;
 import by.grodno.Main;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.Callable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -45,16 +43,6 @@ public class Ship {
             return true;
         }else{
             Main.LOGGER.error("Can't add "+containers2Unloading.size()+" containers to ship #"+shipId+". Ship will be overloaded");
-            return false;
-        }
-    }
-
-    public boolean addContainer2Unloading(Container container){
-        if(containers2Unloading.size()+1 <= capacity) {
-            this.containers2Unloading.add(container);
-            return true;
-        }else{
-            Main.LOGGER.error("Can't add container to ship #"+shipId+". Ship is full");
             return false;
         }
     }

@@ -19,6 +19,12 @@ public class PortManager extends Thread {
 
     public void startWork(Ship ship) {
         Dock dock = getAvailableDock();
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Main.LOGGER.error("Thread "+getName()+" was interrupted");
+        }
         port.lock();
         if (dock != null) {
             Main.LOGGER.info("Ship #" + ship.getShipId() + " going to dock #" + dock.getDockId());
